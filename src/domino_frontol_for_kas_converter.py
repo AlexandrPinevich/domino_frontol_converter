@@ -31,18 +31,42 @@ def convert_file(input_filename, output_filename):
             outfile.write("#\n")
             outfile.write("$$$ADDQUANTITY\n")
 
+            # Поднимем флаг для обработки запроса на удаление штрихкодов
+            del_mode_flag = False
+
             for line in infile:
                 line = line.strip()
-                if line.startswith("OBJ=TMC"):
+                # удаление штрихкожов
+                if line.startswith("OBJ=TMC,CMD=DEL"):
+                    # команда на удаление, один раз, одну строку
+                    # если удалять, то весь файл на удаление придет
+                    if not del_mode_flag:
+                        outfile.write("$$$DELETEBARCODESBYWARECODE\n")
+                        del_mode_flag = True
+
                     parts = line.split(",")
                     data = {}
                     for part in parts:
                         key, value = part.split("=", 1)
                         data[key.strip()] = value.strip()
 
-                    # заменяем точку на запятую в строке PRICE
+                    output_fields = [""] * 2  # Формируем пустой список из 2 полей
+                    output_fields[0] = data.get("CODE", "")  # 1
+                    output_fields[1] = data.get("BC", "")  # 2
+
+                    output_line = ";".join(output_fields) + "\n"
+                    outfile.write(output_line)
+                elif line.startswith("OBJ=TMC"):
+                    parts = line.split(",")
+                    data = {}
+                    for part in parts:
+                        key, value = part.split("=", 1)
+                        data[key.strip()] = value.strip()
+
+                    # заменяем точку на запятую в строках PRICE и QUANT
                     # чтобы с настройками локали не танцевать
                     data["PRICE"] = data.get("PRICE", "").replace(".", ",")
+                    data["QUANT"] = data.get("QUANT", "").replace(".", ",")
                     # заменяем 3 на 0 для не маркированного товара
                     # 7 как у нас - иная маркированная продукция
                     data["BMODE"] = data.get("BMODE", "").replace("3", "0")
@@ -62,6 +86,7 @@ def convert_file(input_filename, output_filename):
 
                     output_line = ";".join(output_fields) + "\n"
                     outfile.write(output_line)
+
         logging.info(f"Файл успешно обработан: {input_filename}")
         return True
 
@@ -145,12 +170,6 @@ def process_directory(input_dir, output_dir, log_dir):
         )
         return  # Прекращаем выполнение, если файлов для обработки не существуют
 
-    if not create_flag_file(output_dir):
-        logging.error(
-            f"Не удалось создать файл-флаг в {output_dir}.  Прекращаем выполнение."
-        )
-        return  # Прекращаем выполнение, если не удалось создать файл - флаг
-
     try:
 
         for filename in os.listdir(input_dir):
@@ -171,6 +190,12 @@ def process_directory(input_dir, output_dir, log_dir):
                         )
                 else:
                     logging.error(f"Ошибка при обработке файла: {input_path}")
+
+        # Создаем файл-флаг после обработки всех файлов
+        if not create_flag_file(output_dir):
+            logging.error(f"Не удалось создать файл-флаг в {output_dir}.")
+        else:
+            logging.info(f"Файл-флаг успешно создан в {output_dir}.")
 
     except Exception as e:
         logging.error(f"Общая ошибка при обработке директории: {e}")
