@@ -3,6 +3,15 @@ import logging
 import datetime
 
 
+def parse_line(line):
+    parts = line.split(",")
+    data = {}
+    for part in parts:
+        key, value = part.split("=", 1)
+        data[key.strip()] = value.strip()
+    return data
+
+
 def convert_file(input_filename, output_filename):
     """
     Преобразует файл.  Возвращает True при успехе, False при неудаче.
@@ -44,25 +53,16 @@ def convert_file(input_filename, output_filename):
                         outfile.write("$$$DELETEBARCODESBYWARECODE\n")
                         del_mode_flag = True
 
-                    parts = line.split(",")
-                    data = {}
-                    for part in parts:
-                        key, value = part.split("=", 1)
-                        data[key.strip()] = value.strip()
-
+                    data = parse_line(line)
                     output_fields = [""] * 2  # Формируем пустой список из 2 полей
                     output_fields[0] = data.get("CODE", "")  # 1
                     output_fields[1] = data.get("BC", "")  # 2
 
                     output_line = ";".join(output_fields) + "\n"
                     outfile.write(output_line)
+                # загрузка товара на кассы
                 elif line.startswith("OBJ=TMC"):
-                    parts = line.split(",")
-                    data = {}
-                    for part in parts:
-                        key, value = part.split("=", 1)
-                        data[key.strip()] = value.strip()
-
+                    data = parse_line(line)
                     # заменяем точку на запятую в строках PRICE и QUANT
                     # чтобы с настройками локали не танцевать
                     data["PRICE"] = data.get("PRICE", "").replace(".", ",")
@@ -203,11 +203,6 @@ def process_directory(input_dir, output_dir, log_dir):
 
 if __name__ == "__main__":
     # TODO 8е поле флаги, разобраться с ними, что должно быть
-    # TODO удаление штрихкодов по CMD=DEL
-    # DELETEALLWARES/Удалить все товары
-    # DELETEWARESBYWARECODE/Удалить товары по коду
-    # DELETEBARCODESBYWARECODE/Удалить штрихкоды товара Если в поле №2 задано значение, удаляется только указанный штрихкод. Если значение не
-    # задано, удаляются все штрихкоды товара.
     # TODO Оттестировать что все работает как надо
     # TODO Убрать конечный принт после отладки?
 
@@ -224,7 +219,7 @@ if __name__ == "__main__":
     4. Необходимо создать директории вручную, так как автоматическое создание
     может быть опасным. При необходимости можно раскомментировать os.makedirs()
     для создания директорий. Логика требует доработки в таком случае. Проверка
-    на наличие input_directory ккак минимум
+    на наличие input_directory как минимум
 
     Для кассы 2 (FOR_KAS/2) создаются директории:
     - `FOR_KAS/2_FRONTOL`
@@ -239,17 +234,17 @@ if __name__ == "__main__":
     При обработке таких файлов `FrontolService` заменяет во второй строке
     признак `#` на `@` для обработанных, сам флаг удаляется.
     """
-    # base_path = "c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data"
 
-    base_path = "w:/MAIL"
+    base_input_path = "w:/MAIL"
+    base_output_path = "c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data"
     for_kas_dir = "FOR_KAS"
     input_dir_name = "2"
     output_dir_name = f"{input_dir_name}_FRONTOL"
     log_dir_name = f"{input_dir_name}_CONVERT_LOG"
 
-    input_directory = f"{base_path}/{for_kas_dir}/{input_dir_name}"
-    output_directory = f"{base_path}/{for_kas_dir}/{output_dir_name}"
-    log_directory = f"{base_path}/{for_kas_dir}/{log_dir_name}"
+    input_directory = f"{base_input_path}/{for_kas_dir}/{input_dir_name}"
+    output_directory = f"{base_output_path}/{for_kas_dir}/{output_dir_name}"
+    log_directory = f"{base_output_path}/{for_kas_dir}/{log_dir_name}"
 
     # Создаем директории для логов и выходных файлов, если их нет
     # os.makedirs(log_directory, exist_ok=True)
