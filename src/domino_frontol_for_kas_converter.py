@@ -155,7 +155,7 @@ def process_directory(input_dir, output_dir, log_dir):
 
     # Настраиваем логирование
     log_file = os.path.join(
-        log_dir, f"convert_log{datetime.date.today().strftime('%Y-%m-%d')}.log"
+        log_dir, f"convert_{datetime.date.today().strftime('%Y-%m-%d')}.log"
     )
     logging.basicConfig(
         filename=log_file,
@@ -251,4 +251,4 @@ if __name__ == "__main__":
     # os.makedirs(output_directory, exist_ok=True)
 
     process_directory(input_directory, output_directory, log_directory)
-    print("Обработка завершена.")
+    # print("Обработка завершена.")
