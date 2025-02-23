@@ -235,7 +235,8 @@ if __name__ == "__main__":
     признак `#` на `@` для обработанных, сам флаг удаляется.
     """
 
-    base_input_path = "w:/MAIL"
+    # base_input_path = "w:/MAIL"
+    base_input_path = "//server/Domino/MAIL"
     base_output_path = "c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data"
     for_kas_dir = "FOR_KAS"
     input_dir_name = "2"
