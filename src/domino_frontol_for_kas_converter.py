@@ -5,12 +5,63 @@ import datetime
 
 
 def parse_line(line):
-    parts = line.split(",")
-    data = {}
-    for part in parts:
-        key, value = part.split("=", 1)
-        data[key.strip()] = value.strip()
-    return data
+    try:
+        parts = line.split(",")
+        data = {}
+        for part in parts:
+            key, value = part.split("=", 1)
+            data[key.strip()] = value.strip()
+        return data
+    except ValueError as e:
+        logging.error(f"Ошибка при разборе строки: {line} - {e}")
+        return None
+    except Exception as e:
+        logging.error(f"Неожиданная ошибка при разборе строки: {line} - {e}")
+        return None
+
+
+def process_delete_mode(line, outfile):
+    data = parse_line(line)
+    if data is None:
+        logging.error(f"Не удалось разобрать строку: {line}")
+        return  # Прекращаем обработку этой строки
+    output_fields = [""] * 2
+    output_fields[0] = data.get("CODE", "")
+    output_fields[1] = data.get("BC", "")
+    output_line = ";".join(output_fields) + "\n"
+    outfile.write(output_line)
+
+
+def process_tmc_mode(line, outfile):
+    data = parse_line(line)
+    if data is None:
+        logging.error(f"Не удалось разобрать строку: {line}")
+        return  # Прекращаем обработку этой строки
+    # заменяем точку на запятую в строках PRICE и QUANT
+    # чтобы с настройками локали не танцевать
+    data["PRICE"] = data.get("PRICE", "").replace(".", ",")
+    data["QUANT"] = data.get("QUANT", "").replace(".", ",")
+    # заменяем 3 на 0 для не маркированного товара
+    # 7 как у нас - иная маркированная продукция
+    data["BMODE"] = data.get("BMODE", "").replace("3", "0")
+
+    output_fields = [""] * 67  # Формируем пустой список из 67 полей
+    output_fields[0] = data.get("CODE", "")  # 1
+    output_fields[1] = data.get("BC", "")  # 2
+    output_fields[2] = data.get("NAME", "")  # 3
+    output_fields[4] = data.get("PRICE", "")  # 5
+    # 08 Флаги через запятую: 1й флаг – дробное количество
+    output_fields[7] = "1" if data.get("MEASURE", "") == "2" else "0"
+    output_fields[13] = data.get("QUANT", "")  # 14 Коэфф штрихкода
+    output_fields[22] = "3"  # 23 код налоговой группы 20%
+    # 52 Маркировка флаг для маркированного запрет
+    output_fields[51] = "0" if data.get("BMODE", "") == "7" else "1"
+    output_fields[54] = data.get("BMODE", "")  # 55 Маркировка
+    # 66 Для мерного метр
+    output_fields[65] = "6" if data.get("MEASURE", "") == "2" else "0"
+
+    output_line = ";".join(output_fields) + "\n"
+    outfile.write(output_line)
 
 
 def convert_file(input_filename, output_filename):
@@ -53,42 +104,10 @@ def convert_file(input_filename, output_filename):
                     if not del_mode_flag:
                         outfile.write("$$$DELETEBARCODESBYWARECODE\n")
                         del_mode_flag = True
-
-                    data = parse_line(line)
-                    output_fields = [""] * 2  # Формируем пустой список из 2 полей
-                    output_fields[0] = data.get("CODE", "")  # 1
-                    output_fields[1] = data.get("BC", "")  # 2
-
-                    output_line = ";".join(output_fields) + "\n"
-                    outfile.write(output_line)
+                    process_delete_mode(line, outfile)
                 # загрузка товара на кассы
                 elif line.startswith("OBJ=TMC"):
-                    data = parse_line(line)
-                    # заменяем точку на запятую в строках PRICE и QUANT
-                    # чтобы с настройками локали не танцевать
-                    data["PRICE"] = data.get("PRICE", "").replace(".", ",")
-                    data["QUANT"] = data.get("QUANT", "").replace(".", ",")
-                    # заменяем 3 на 0 для не маркированного товара
-                    # 7 как у нас - иная маркированная продукция
-                    data["BMODE"] = data.get("BMODE", "").replace("3", "0")
-
-                    output_fields = [""] * 67  # Формируем пустой список из 67 полей
-                    output_fields[0] = data.get("CODE", "")  # 1
-                    output_fields[1] = data.get("BC", "")  # 2
-                    output_fields[2] = data.get("NAME", "")  # 3
-                    output_fields[4] = data.get("PRICE", "")  # 5
-                    # 08 Флаги через запятую: 1й флаг – дробное количество
-                    output_fields[7] = "1" if data.get("MEASURE", "") == "2" else "0"
-                    output_fields[13] = data.get("QUANT", "")  # 14 Коэфф штрихкода
-                    output_fields[22] = "3"  # 23 код налоговой группы 20%
-                    # 52 Маркировка флаг для маркированного запрет
-                    output_fields[51] = "0" if data.get("BMODE", "") == "7" else "1"
-                    output_fields[54] = data.get("BMODE", "")  # 55 Маркировка
-                    # 66 Для мерного метр
-                    output_fields[65] = "6" if data.get("MEASURE", "") == "2" else "0"
-
-                    output_line = ";".join(output_fields) + "\n"
-                    outfile.write(output_line)
+                    process_tmc_mode(line, outfile)
 
         logging.info(f"Файл успешно обработан: {input_filename}")
         return True
