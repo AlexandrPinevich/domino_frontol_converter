@@ -52,6 +52,7 @@ def process_tmc_mode(line, outfile):
     output_fields[4] = data.get("PRICE", "")  # 5
     # 08 Флаги через запятую: 1й флаг – дробное количество
     output_fields[7] = "1" if data.get("MEASURE", "") == "2" else "0"
+    output_fields[12] = "1"  # 13 Признак предмета расчета = товар на всё
     output_fields[13] = data.get("QUANT", "")  # 14 Коэфф штрихкода
     output_fields[22] = "3"  # 23 код налоговой группы 20%
     # 52 Маркировка флаг для маркированного запрет
