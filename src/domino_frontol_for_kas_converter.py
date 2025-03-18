@@ -42,7 +42,7 @@ def process_tmc_mode(line, outfile):
     data["PRICE"] = data.get("PRICE", "").replace(".", ",")
     data["QUANT"] = data.get("QUANT", "").replace(".", ",")
     # заменяем 3 на 0 для не маркированного товара
-    # 7 как у нас - иная маркированная продукция
+    # TODO Поменять логику как появится доработка Домино
     data["BMODE"] = data.get("BMODE", "").replace("3", "0")
 
     output_fields = [""] * 67  # Формируем пустой список из 67 полей
@@ -55,9 +55,13 @@ def process_tmc_mode(line, outfile):
     output_fields[12] = "1"  # 13 Признак предмета расчета = товар на всё
     output_fields[13] = data.get("QUANT", "")  # 14 Коэфф штрихкода
     output_fields[22] = "3"  # 23 код налоговой группы 20%
-    # 52 Маркировка флаг для маркированного запрет
-    output_fields[51] = "0" if data.get("BMODE", "") == "7" else "1"
-    output_fields[54] = data.get("BMODE", "")  # 55 Маркировка
+    # TODO Поменять логику как появится доработка Домино
+    # 52 Маркировка Значение флага «Разрешить регистрацию без штрихкода маркировки»
+    output_fields[51] = "0" if data.get("BMODE", "") != "0" else "1"
+    # TODO Поменять логику как появится доработка Домино
+    # output_fields[54] = data.get("BMODE", "")  # 55 Маркировка
+    # 55 костыль, Маркировка,  всё что с марками - товары легкой промышленности
+    output_fields[54] = "11" if data.get("BMODE", "") != "0" else "0"
     # 66 Для мерного метр
     output_fields[65] = "6" if data.get("MEASURE", "") == "2" else "0"
 
@@ -225,6 +229,7 @@ def process_directory(input_dir, output_dir, log_dir):
 
 
 if __name__ == "__main__":
+    # TODO Поменять логику BMODE= как появится доработка Домино, в 3х местах
     # TODO улучшить процессинг путей. создавать поддиректории от места запуска?
     # TODO логи в одну строку компактнее сделать
 
