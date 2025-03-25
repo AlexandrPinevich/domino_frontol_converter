@@ -37,13 +37,10 @@ def process_tmc_mode(line, outfile):
     if data is None:
         logging.error(f"Не удалось разобрать строку: {line}")
         return  # Прекращаем обработку этой строки
-    # заменяем точку на запятую в строках PRICE и QUANT
-    # чтобы с настройками локали не танцевать
+
+    # QUANT передается только целым, может округлиться в ноль
+    # Чтобы с настройками локали не танцевать
     data["PRICE"] = data.get("PRICE", "").replace(".", ",")
-    data["QUANT"] = data.get("QUANT", "").replace(".", ",")
-    # заменяем 3 на 0 для не маркированного товара
-    # TODO Поменять логику как появится доработка Домино
-    data["BMODE"] = data.get("BMODE", "").replace("3", "0")
 
     output_fields = [""] * 67  # Формируем пустой список из 67 полей
     output_fields[0] = data.get("CODE", "")  # 1
@@ -55,13 +52,9 @@ def process_tmc_mode(line, outfile):
     output_fields[12] = "1"  # 13 Признак предмета расчета = товар на всё
     output_fields[13] = data.get("QUANT", "")  # 14 Коэфф штрихкода
     output_fields[22] = "3"  # 23 код налоговой группы 20%
-    # TODO Поменять логику как появится доработка Домино
-    # 52 Маркировка Значение флага «Разрешить регистрацию без штрихкода маркировки»
-    output_fields[51] = "0" if data.get("BMODE", "") != "0" else "1"
-    # TODO Поменять логику как появится доработка Домино
-    # output_fields[54] = data.get("BMODE", "")  # 55 Маркировка
-    # 55 костыль, Маркировка,  всё что с марками - товары легкой промышленности
-    output_fields[54] = "11" if data.get("BMODE", "") != "0" else "0"
+    # 52 Маркировка: флаг «Разрешить регистрацию без штрихкода маркировки» 1 = yes
+    output_fields[51] = "1" if data.get("BMODE", "") == "0" else "0"
+    output_fields[54] = data.get("BMODE", "")  # 55 Маркировка: тип номенклатуры
     # 66 Для мерного метр
     output_fields[65] = "6" if data.get("MEASURE", "") == "2" else "0"
 
@@ -76,7 +69,7 @@ def convert_file(input_filename, output_filename):
     формат файла на входе
     OBJ=TMC,CMD=MOD,CODE=332332,BC=2900003323329,VCODE=1,PTYPE=0,PRICE=1.00,
         DEPT=0,NAME=!!!ТЕСТ КАССЫ БЕЗ ЧЗ!!! ТЕСТОВЫЙ ТОВАР,
-        MEASURE=2,QUANT=1,QMODE=15,BMODE=3
+        MEASURE=2,QUANT=1,QMODE=15,BMODE=11
 
     в домино функция выглядит так
     Печать 'OBJ=TMC,CMD=MOD,CODE='&ТоварКод&',BC='&ТоварПродажныйКод&',
@@ -84,6 +77,8 @@ def convert_file(input_filename, output_filename):
         DEPT='&DEPT &',NAME='&ТоварИмя& ',MEASURE='&ПризнакВесовой&',
         QUANT='&количество_по_умолчанию&',QMODE=15,
         BMODE='&(ПризнакМаркированный ? 7 : '3') поз 1,1 формат 'S255';
+
+    BMODE= доработано, нумерация соответствует фронтолу
 
     на выходе числа ждут в кавычках
     """
@@ -229,7 +224,6 @@ def process_directory(input_dir, output_dir, log_dir):
 
 
 if __name__ == "__main__":
-    # TODO Поменять логику BMODE= как появится доработка Домино, в 3х местах
     # TODO улучшить процессинг путей. создавать поддиректории от места запуска?
     # TODO логи в одну строку компактнее сделать
 

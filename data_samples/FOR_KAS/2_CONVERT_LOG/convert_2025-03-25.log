@@ -1,0 +1,6 @@
+2025-03-25 12:49:48,538 - INFO - Обрабатываем файл: //server/Domino/MAIL/FOR_KAS/2\$863929 - тестовый
+2025-03-25 12:49:48,544 - INFO - Файл успешно обработан: //server/Domino/MAIL/FOR_KAS/2\$863929 - тестовый
+2025-03-25 12:49:48,544 - INFO - Файл обработан и сохранен: c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data/FOR_KAS/2_FRONTOL\$863929 - тестовый.txt
+2025-03-25 12:49:48,551 - INFO - Удален исходный файл: //server/Domino/MAIL/FOR_KAS/2\$863929 - тестовый
+2025-03-25 12:49:48,552 - INFO - Создан файл-флаг: c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data/FOR_KAS/2_FRONTOL\ready_to_load.flag
+2025-03-25 12:49:48,553 - INFO - Файл-флаг успешно создан в c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data/FOR_KAS/2_FRONTOL
