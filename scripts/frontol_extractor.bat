@@ -1,11 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 
+rem gpedit.msc Конфигурация компьютера → Конфигурация Windows → Сценарии (запуск/завершение) → Завершение работы.
+
+
 rem ========== SETTINGS ==========
 set "source_folder=C:\domino_frontol_converter\data\FROM_KAS"
-set "destination_folder=\\server\domino\MAIL\FROM_KAS"
-set "log_folder=\\server\domino\MAIL\FROM_KAS\Frontol_extract_log"
-set "kas_number=kas_2"
+set "destination_folder=\\Server\Domino\MAIL\FROM_KAS"
+set "log_folder=\\Server\Domino\MAIL\FROM_KAS\Frontol_extract_log"
+set "kas_number=kas_3"
 set "log_file=%log_folder%\%kas_number%.log"
 
 rem ========== PATH VALIDATION ==========
@@ -49,7 +52,7 @@ if !file_count! equ 0 (
         echo [%date% %time%] [ERROR] Critical Robocopy error (code: !robocopy_errorlevel!^) >> "%log_file%"            
     ) 
     if !robocopy_errorlevel! leq 7 (
-        echo [%date% %time%] [OK] Success Robocopy error level (code: !robocopy_errorlevel!^)
+        echo [%date% %time%] [OK] Success Robocopy error level (code: !robocopy_errorlevel!^) less then 8 is ok
         echo [%date% %time%] [OK] Success Robocopy error level (code: !robocopy_errorlevel!^) >> "%log_file%"            
     )
 )

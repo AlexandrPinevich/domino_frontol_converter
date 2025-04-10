@@ -1,33 +1,50 @@
 @echo off
-rem Указываем путь к Python
-rem Get-Command python
-set "PYTHON_PATH=C:\Python313\python.exe"
 
-rem Указываем путь к скрипту
-set "SCRIPT_PATH=C:\Users\A.Pinevich\YandexDisk\domino_frontol_converter\src\domino_frontol_for_kas_converter.py"
+rem ========== Configuration ==========
+set "SCRIPT_PATH=C:\domino_frontol_converter\src\domino_frontol_for_kas_converter.py"
+set "LOG_DIR=\\Server\Domino\MAIL\FOR_KAS\3_CONVERT_LOG"
 
-rem Извлекаем день, месяц и год из текущей даты
-set day=%date:~0,2%
-set month=%date:~3,2%
-set year=%date:~6,4%
+rem ========== Initialization ==========
+for /f %%A in ('powershell -Command "(Get-Date).ToString('yyyy-MM-dd')"') do set "LOG_DATE=%%A"
+set "LOG_FILE=%LOG_DIR%\execution_%LOG_DATE%.log"
 
-rem Формируем дату в формате ГГГГ-ММ-ДД
-set LOG_DATE=%year%-%month%-%day%
+rem ========== Python detection ==========
+set "PYTHON_PATH="
+for /f "delims=" %%P in ('where python 2^>nul') do if not defined PYTHON_PATH set "PYTHON_PATH=%%P"
 
-set "LOG_FILE=C:\Users\A.Pinevich\YandexDisk\domino_frontol_converter\data\FOR_KAS\2_CONVERT_LOG\execution_%LOG_DATE%.log"
+rem ========== Script validation ==========
 
-rem Проверяем, существует ли Python
-if exist "%PYTHON_PATH%" (
-    echo [%date% %time%] Запуск скрипта... >> "%LOG_FILE%"
-    "%PYTHON_PATH%" "%SCRIPT_PATH%" >> "%LOG_FILE%" 2>&1
-    if %errorlevel% equ 0 (
-        echo [%date% %time%] Скрипт выполнен успешно. >> "%LOG_FILE%"
-    ) else (
-        echo [%date% %time%] Ошибка при выполнении скрипта. Код ошибки: %errorlevel% >> "%LOG_FILE%"
-    )
-) else (
-    echo [%date% %time%] Python не найден по пути: "%PYTHON_PATH%" >> "%LOG_FILE%"
+if not exist "%PYTHON_PATH%" (
+    echo [%date% %time%] [FAIL] Python not found in system PATH >> "%LOG_FILE%"
+    echo [%date% %time%] [FAIL] ERROR: Python interpreter not found. Contact support.
+    pause
 )
+
+if not exist "%SCRIPT_PATH%" (
+    echo [%date% %time%] [FAIL] Script not found at %SCRIPT_PATH% >> "%LOG_FILE%"
+    echo [%date% %time%] [FAIL] FATAL: Conversion script missing. Contact support.
+    pause
+)
+
+rem ========== Execution block ==========
+echo [SYSTEM] Starting conversion process >> "%LOG_FILE%"
+echo [SYSTEM] Starting document conversion...
+
+"%PYTHON_PATH%" "%SCRIPT_PATH%" >> "%LOG_FILE%" 2>&1
+set PYTHON_EXITCODE=%errorlevel%
+
+if %PYTHON_EXITCODE% equ 0 (
+    echo [%date% %time%] [OK] Conversion successful >> "%LOG_FILE%"
+    echo [%date% %time%] [OK] Conversion completed successfully
+) else (
+    echo [%date% %time%] [WARNING] Conversion failed with code %errorlevel% >> "%LOG_FILE%"
+    echo [%date% %time%] [WARNING] ERROR: Conversion failed. Check logfile: %LOG_FILE%
+)
+
+exit /b 0
+
+
+
 
 
 

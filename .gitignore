@@ -1,9 +1,2 @@
-data/FOR_KAS/2/*
-!data/FOR_KAS/2/.gitkeep
-data/FOR_KAS/2_CONVERT_LOG/*
-!data/FOR_KAS/2_CONVERT_LOG/.gitkeep
-data/FOR_KAS/2_FRONTOL/*
-!data/FOR_KAS/2_FRONTOL/.gitkeep
-data/FROM_KAS
-!data/FROM_KAS/.gitkeep
+data*
 domino*

@@ -246,6 +246,7 @@ if __name__ == "__main__":
 
     Используй абсолютне пути, W/MAIL работает плохо и не всегда,
     планировщик при запуске BAT файла не видит её в частности
+    //server/Domino лучше, если не работает, то по статическому айпи
 
     1. Измени путь в переменной `base_path`.
     2. Измени `for_kas_dir`, если используется другая.
@@ -271,15 +272,15 @@ if __name__ == "__main__":
     второй строке признак `#` на `@` для обработанных, сам флаг удаляется.
     """
 
-    base_input_path = "//server/Domino/MAIL"
-    base_output_path = "c:/Users/A.Pinevich/YandexDisk/domino_frontol_converter/data"
+    base_input_path = "//Server/Domino/MAIL"
+    base_output_path = "c:/domino_frontol_converter/data"
     for_kas_dir = "FOR_KAS"
-    input_dir_name = "2"
+    input_dir_name = "3"
     output_dir_name = f"{input_dir_name}_FRONTOL"
     log_dir_name = f"{input_dir_name}_CONVERT_LOG"
 
     input_directory = f"{base_input_path}/{for_kas_dir}/{input_dir_name}"
     output_directory = f"{base_output_path}/{for_kas_dir}/{output_dir_name}"
-    log_directory = f"{base_output_path}/{for_kas_dir}/{log_dir_name}"
+    log_directory = f"{base_input_path}/{for_kas_dir}/{log_dir_name}"
 
     process_directory(input_directory, output_directory, log_directory)
