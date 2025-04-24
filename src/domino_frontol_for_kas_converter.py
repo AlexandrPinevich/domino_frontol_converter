@@ -1,5 +1,6 @@
 import os
 import sys
+import shutil
 import logging
 import datetime
 
@@ -52,6 +53,7 @@ def process_tmc_mode(line, outfile):
     output_fields[0] = data.get("CODE", "")  # 1
     output_fields[1] = data.get("BC", "")  # 2
     output_fields[2] = data.get("NAME", "")  # 3
+    output_fields[3] = data.get("NAME", "")  # 4
     output_fields[4] = data.get("PRICE", "")  # 5
     # 08 Флаги через запятую: 1й флаг – дробное количество
     output_fields[7] = "1" if data.get("MEASURE", "") == "2" else "0"
@@ -143,13 +145,14 @@ def ensure_directories_exist(input_dir, output_dir, log_dir):
 
 def ensure_files_exist(input_dir):
     """
-    Проверяет, есть ли в input_dir хотя бы один файл, начинающийся с '$'.
+    Проверяет, есть ли в input_dir хотя бы один файл, начинающийся с '$'
+    или с расширением .txt
     Возвращает True, если такие файлы есть, False в противном случае.
     """
     for filename in os.listdir(input_dir):
-        if filename.startswith("$"):
+        if filename.startswith("$") or filename.lower().endswith(".txt"):
             return True
-    logging.warning(f"В папке {input_dir} нет файлов, начинающихся с '$'")
+    logging.warning(f"В папке {input_dir} нет подходящих файлов для обработки")
     return False
 
 
@@ -199,10 +202,10 @@ def process_directory(input_dir, output_dir, log_dir):
         return  # Прекращаем выполнение, если файлов для обработки не существуют
 
     try:
-
         for filename in os.listdir(input_dir):
+            input_path = os.path.join(input_dir, filename)
+            # Если это файл переоценки
             if filename.startswith("$"):
-                input_path = os.path.join(input_dir, filename)
                 output_filename = filename + ".txt"
                 output_path = os.path.join(output_dir, output_filename)
 
@@ -218,6 +221,16 @@ def process_directory(input_dir, output_dir, log_dir):
                         )
                 else:
                     logging.error(f"Ошибка при обработке файла: {input_path}")
+            # Остальные файлы с расширением .txt пробрасываем не изменяя
+            elif filename.lower().endswith(".txt"):
+                output_path = os.path.join(output_dir, filename)
+                try:
+                    shutil.move(input_path, output_path)
+                    logging.info(f"Файл перемещен: {output_path}")
+                except Exception as e:
+                    logging.error(
+                        f"Ошибка перемещения: {input_path} -> {output_path} - {e}"
+                    )
 
         # Создаем файл-флаг после обработки всех файлов
         if not create_flag_file(output_dir):
@@ -278,6 +291,10 @@ if __name__ == "__main__":
     и файл-флаг.
 
     Обработанные файлы удаляются из директории источника
+
+    Добавлен прямой проброс файлов в формате Атол из папки источника в
+    папку приемник без конвертации. Название файла не должно начинаеться с $
+    и должно иметь расширение .txt. Для удобства управления скидками.
 
     При обработке ковертированных файлов `FrontolService` заменяет во
     второй строке признак `#` на `@` для обработанных, сам флаг удаляется.
