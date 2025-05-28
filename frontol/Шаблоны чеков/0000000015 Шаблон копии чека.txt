@@ -1,0 +1,199 @@
+//#ÈÍÔÎĞÌÀÖÈß Â İÒÎÉ È ÑËÅÄÓŞÙÅÉ ÑÒĞÎÊÅ ÍÅÎÁÕÎÄÈÌÀ ÄËß ÊÎĞĞÅÊÒÍÎÉ ĞÀÁÎÒÛ ÌÀÑÒÅĞÀ#
+//bar01=1¦bar03=50¦bar04=100¦dsc02=1¦dsc03=1¦dsc05=1¦dsc06=1¦dsc50=1¦dsc51=1¦scr09=1¦scr10=4¦scr43=1¦scr17=1¦scr18=1¦scr20=1¦scr21=1¦scr23=1¦scr25=1¦dsc29=1¦dsc30=1¦scr26=1¦scr27=1¦scr28=1¦scr59=1¦scr32=1¦scr35=1¦scr37=1¦scr69=1¦scr70=1¦scr71=1¦scr72=1¦scr73=1¦dsc55=1¦scr39=1¦scr40=1¦scr66=1¦scr68=1¦scr75=1¦scr76=1¦mac01==¦mac02=-¦mac03=_¦mac04=—¦
+
+function printHeader(print)
+{
+  print.printCenterString("*", "*");
+  print.printCenterString("   ÊÎÏÈß ×ÅÊÀ   ", "*");
+  print.printCenterString("*", "*");
+  print.printBarcode(frontol.currentDocument.barcode,0,50,100)
+  print.printLRStringLF("ĞÌ ¹"+frontol.codeWorkplace,frontol.currentUser.name," ");
+  print.printLRStringLF(frontol.currentDocument.type.name+" ¹"+print.addCharLeft(frontol.currentDocument.number,0,8),
+                               "Ñìåíà ¹"+print.addCharLeft(frontol.currentDocument.sessionNumber,0,4)," ");
+  print.printLRStringLF("Îòêğ. "+frontol.currentDocument.timeOpen,"Çàêğ. "+frontol.currentDocument.timeClose," ");
+  print.printLRStringLF("=","=","=");
+}
+
+function printPosition(print)
+{
+  if (frontol.currentDocument.position.storno == 1)
+    print.printCenterString("ÑÒÎĞÍÎ"," ");
+  print.printLRStringLF(frontol.currentDocument.position.number+". "+frontol.currentDocument.position.ware.text+" "+(frontol.currentDocument.position.fracSale?print.formatQuantity(frontol.currentDocument.position.quantity):frontol.currentDocument.position.quantity)+"* "+print.formatCurrency(frontol.currentDocument.position.price),print.formatCurrency(frontol.currentDocument.position.sum),"_");
+  if (frontol.currentDocument.position.storno == 0)
+  {
+    print.printStringWordWrap(frontol.currentDocument.position.ware.code+" "+frontol.currentDocument.position.ware.mark+" "+frontol.currentDocument.position.barcode);
+      for (frontol.currentDocument.position.aspect.index = 1;
+           frontol.currentDocument.position.aspect.index <=
+           frontol.currentDocument.position.aspect.count;
+           frontol.currentDocument.position.aspect.index++)
+      {
+        if (frontol.currentDocument.position.aspect.code != 0)
+          print.printStringWordWrap("    "+frontol.currentDocument.position.aspect.aspectText+": "+
+                                frontol.currentDocument.position.aspect.text);
+      }
+    if (frontol.currentDocument.position.ware.series != "")
+      print.printStringWordWrap("  "+"Ñåğèÿ "+frontol.currentDocument.position.ware.series);
+    for (frontol.currentDocument.position.discountPos.index = 1;
+         frontol.currentDocument.position.discountPos.index <= frontol.currentDocument.position.discountPos.count;
+         frontol.currentDocument.position.discountPos.index++)
+    {
+      if (frontol.currentDocument.position.discountPos.sum != 0)
+      {
+      if (frontol.currentDocument.position.discountPos.marketingAction != null)
+        if(frontol.currentDocument.position.discountPos.marketingAction.text != "")
+          print.printStringWordWrap("  "+frontol.currentDocument.position.discountPos.marketingAction.text);
+          var discSuff;
+          if (frontol.currentDocument.position.discountPos.valueType == 0)
+            discSuff= "ğ";
+          else
+            discSuff= "%";
+      if (frontol.currentDocument.position.discountPos.sum < 0)
+        print.printLRStringLF("  "+"+"+print.formatPercent(-frontol.currentDocument.position.discountPos.value)+discSuff,
+                                       print.formatCurrency(-frontol.currentDocument.position.discountPos.sum),"_");
+      else
+        print.printLRStringLF("  "+"-"+print.formatPercent(frontol.currentDocument.position.discountPos.value)+discSuff,
+                                       print.formatCurrency(frontol.currentDocument.position.discountPos.sum),"_");
+      }
+    }
+    if (frontol.currentDocument.position.discountPos.totalSum  != 0)
+      if (frontol.currentDocument.position.discountPos.totalSum < 0)
+        print.printLRStringLF("  "+"+"+print.formatPercent(frontol.currentDocument.position.discountPos.totalPercent)+"%",
+               print.formatCurrency(-frontol.currentDocument.position.discountPos.totalSum),"_");
+      else
+        print.printLRStringLF("  "+"-"+print.formatPercent(frontol.currentDocument.position.discountPos.totalPercent)+"%",
+                print.formatCurrency(frontol.currentDocument.position.discountPos.totalSum),"_");
+    if (frontol.currentDocument.position.totalSumDiscount != 0)
+      print.printLRString("  "+"Èòîãîâàÿ ñóììà",print.formatCurrency(frontol.currentDocument.position.sumWithDiscs),"_");
+    if (frontol.currentDocument.position.number != frontol.currentDocument.position.count)
+      print.printLRStringLF("-","-","-");
+  }
+
+}
+
+function printFooter(print)
+{
+  {
+  print.printLRStringLF("Ïîçèöèé: "+frontol.currentDocument.quantityPositions,"Ïîêóïîê: "+frontol.currentDocument.quantityBuys," ");
+  print.printLRStringLF("=","=","=");
+  for(frontol.currentDocument.aspect.index = 1;
+      frontol.currentDocument.aspect.index <=
+      frontol.currentDocument.aspect.count;
+      frontol.currentDocument.aspect.index++)
+  {
+    if (frontol.currentDocument.aspect.text != "")
+      print.printStringWordWrap(frontol.currentDocument.aspect.aspectText+": "+frontol.currentDocument.aspect.text);
+   }
+  if(frontol.currentDocument.cardValues != "")
+    print.printStringWordWrap("Êàğòà: "+frontol.currentDocument.cardValues);
+  if(frontol.currentDocument.client.text != "")
+    print.printStringWordWrap("Êëèåíò: " + frontol.currentDocument.client.text);
+  print.printLRStringLF("Ñóììà",print.formatCurrency(frontol.currentDocument.sum),"_");
+  if (frontol.currentDocument.discountDoc.count > 0)
+    if (frontol.currentDocument.discountDoc.totalSum < 0)
+      print.printLRStringLF("+"+print.formatPercent(-frontol.currentDocument.discountDoc.totalPercent)+"%",
+                           print.formatCurrency(-frontol.currentDocument.discountDoc.totalSum),"_");
+    else
+      print.printLRStringLF("-"+print.formatPercent(frontol.currentDocument.discountDoc.totalPercent)+"%",
+                            print.formatCurrency(frontol.currentDocument.discountDoc.totalSum),"_");
+  if (frontol.currentDocument.sum != frontol.currentDocument.sumWithDiscs )
+    print.printLRStringLF("Èòîãîâàÿ ñóììà",print.formatCurrency(frontol.currentDocument.sumWithDiscs),"_");
+  if (frontol.currentDocument.sumPrepaid != 0)
+    print.printLRStringLF("Ïğåäîïëàòà",print.formatCurrency(frontol.currentDocument.sumPrepaid), "_");
+  print.printLRStringLF("-","-","-");
+  if (frontol.currentDocument.nonFiscalPayment.count > 0)
+    print.printStringWordWrap("Íåôèñêàëüíûå îïëàòû");
+  for (frontol.currentDocument.nonFiscalPayment.index = 1;
+       frontol.currentDocument.nonFiscalPayment.index <= frontol.currentDocument.nonFiscalPayment.count;
+       frontol.currentDocument.nonFiscalPayment.index++)
+  {
+    if (frontol.currentDocument.nonFiscalPayment.sum != 0)
+    {
+      if (frontol.currentDocument.nonFiscalPayment.marketingAction != null)
+        print.printStringWordWrap(frontol.currentDocument.nonFiscalPayment.marketingAction.text);
+      if ((frontol.currentDocument.nonFiscalPayment.type.operation == 4) && (frontol.currentDocument.nonFiscalPayment.paymentSystem != null))
+      {
+        if (frontol.currentDocument.nonFiscalPayment.paymentSystem.text != "")
+          print.printStringWordWrap(frontol.currentDocument.nonFiscalPayment.paymentSystem.text);
+      else if (frontol.currentDocument.nonFiscalPayment.paymentSystem.name != "")
+          print.printStringWordWrap(frontol.currentDocument.nonFiscalPayment.paymentSystem.name);
+      }
+      if (frontol.currentDocument.nonFiscalPayment.type.operation == 6)
+      {
+          print.printStringWordWrap("Ïîäàğî÷íàÿ êàğòà " + frontol.currentDocument.nonFiscalPayment.giftCard.value);
+      }
+      print.printLRString("", print.formatCurrency(frontol.currentDocument.nonFiscalPayment.sum),"_");
+    }
+  }
+  if (frontol.currentDocument.nonFiscalPayment.totalSum > 0)
+      print.printLRStringLF("  "+print.formatPercent(frontol.currentDocument.nonFiscalPayment.totalPercent)+"%",
+                            print.formatCurrency(frontol.currentDocument.nonFiscalPayment.totalSum),"_");
+  if (frontol.currentDocument.nonFiscalPayment.totalSum != 0)
+    {
+      print.printLRString("Ñóììà íåôèñêàëüíûõ îïëàò",print.formatCurrency(frontol.currentDocument.nonFiscalPayment.totalSum),"_");
+      print.printLRString(print.formatPercent(frontol.currentDocument.nonFiscalPayment.totalPercent)+"%",
+                          print.formatCurrency(frontol.currentDocument.nonFiscalPayment.totalSum),"_");
+    }
+  print.printStringWordWrap("Îïëàòà");
+  for(frontol.currentDocument.payment.index = 1;
+      frontol.currentDocument.payment.index <=
+      frontol.currentDocument.payment.count;
+      frontol.currentDocument.payment.index++)
+  {
+    if(frontol.currentDocument.payment.sumInBaseCurrency > 0)
+      print.printLRString("  "+frontol.currentDocument.payment.type.text,
+                       "="+print.formatCurrency(frontol.currentDocument.payment.sumInBaseCurrency),"_");
+    else
+    {
+      print.printStringWordWrap("Ñäà÷à");
+      print.printLRString("  "+frontol.currentDocument.payment.type.text,
+                       "="+print.formatCurrency(-frontol.currentDocument.payment.sumInBaseCurrency),"_");
+    }
+  }
+  print.printLRStringLF("-","-","-");
+  for(frontol.currentDocument.tax.index = 1;
+      frontol.currentDocument.tax.index <=
+      frontol.currentDocument.tax.count;
+      frontol.currentDocument.tax.index++)
+  {
+    if(frontol.currentDocument.tax.index == 1)
+      print.printStringWordWrap("Âêëş÷àÿ íàëîãè");
+    if (frontol.currentDocument.tax.sum != 0)
+      print.printLRString("  "+frontol.currentDocument.tax.taxRateText,
+                       print.formatCurrency(frontol.currentDocument.tax.sum),"_");
+    if(frontol.currentDocument.tax.index == frontol.currentDocument.tax.count)
+      print.printLRString("  "+"Èòîã",print.formatCurrency(frontol.currentDocument.tax.totalSum),"_");
+  }
+  for(frontol.currentDocument.servicePrintInfo.index = 1;
+      frontol.currentDocument.servicePrintInfo.index <= frontol.currentDocument.servicePrintInfo.count;
+      frontol.currentDocument.servicePrintInfo.index++)
+     if (frontol.currentDocument.servicePrintInfo.printGroup.code == print.printGroup.code)
+     {
+       print.printLRStringLF("—","—","—");
+       print.printString(frontol.currentDocument.servicePrintInfo.info);
+     }
+  print.printLRStringLF("-","-","-");
+  if (frontol.currentDocument.bonus.count > 0)
+    print.printStringWordWrap("Íà÷èñëåíèå áîíóñîâ");
+  for (frontol.currentDocument.bonus.index = 1;
+       frontol.currentDocument.bonus.index <= frontol.currentDocument.bonus.count;
+       frontol.currentDocument.bonus.index++)
+  {
+    if (frontol.currentDocument.bonus.sum != 0)
+    {
+      if ((frontol.currentDocument.bonus.type == 0) && (frontol.currentDocument.nonFiscalPayment.marketingAction != null))
+        if (frontol.currentDocument.bonus.marketingAction.text != "")
+           print.printLRStringLF(frontol.currentDocument.bonus.marketingAction.text,print.formatCurrency(frontol.currentDocument.bonus.sum), "_");
+      if (frontol.currentDocument.bonus.type == 1)
+      { if (frontol.currentDocument.bonus.paymentSystem.text != "")
+           print.printLRStringLF(frontol.currentDocument.bonus.paymentSystem.text,print.formatCurrency(frontol.currentDocument.bonus.sum), "_");
+        else if (frontol.currentDocument.bonus.paymentSystem.name != "")
+          print.printLRStringLF(frontol.currentDocument.bonus.paymentSystem.name,print.formatCurrency(frontol.currentDocument.bonus.sum), "_");
+      }
+    }
+  }
+  }
+  print.printCenterString("*", "*");
+  print.printCenterString("   ÄÎÊÓÌÅÍÒ ÍÅ ßÂËßÅÒÑß ÔÈÑÊÀËÜÍÛÌ ×ÅÊÎÌ   ", "*");
+  print.printCenterString("*", "*");
+}
+

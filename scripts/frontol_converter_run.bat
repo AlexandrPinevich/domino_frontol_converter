@@ -2,7 +2,7 @@
 
 rem ========== Configuration ==========
 set "SCRIPT_PATH=C:\domino_frontol_converter\src\domino_frontol_for_kas_converter.py"
-set "LOG_DIR=\\Server\Domino\MAIL\FOR_KAS\3_CONVERT_LOG"
+set "LOG_DIR=\\Server\Domino\MAIL\FOR_KAS\4_CONVERT_LOG"
 
 rem ========== Initialization ==========
 for /f %%A in ('powershell -Command "(Get-Date).ToString('yyyy-MM-dd')"') do set "LOG_DATE=%%A"

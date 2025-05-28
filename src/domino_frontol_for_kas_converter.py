@@ -303,7 +303,7 @@ if __name__ == "__main__":
     base_input_path = "//Server/Domino/MAIL"
     base_output_path = "c:/domino_frontol_converter/data"
     for_kas_dir = "FOR_KAS"
-    input_dir_name = "3"
+    input_dir_name = "4"
     output_dir_name = f"{input_dir_name}_FRONTOL"
     log_dir_name = f"{input_dir_name}_CONVERT_LOG"
 
