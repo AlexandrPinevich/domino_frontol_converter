@@ -1,8 +1,16 @@
 @echo off
 
 rem ========== Configuration ==========
+rem Указываем номер кассы (менять только здесь)
+set KAS_NUM=1
+
+rem Указываем путь к скрипту
 set "SCRIPT_PATH=C:\domino_frontol_converter\src\domino_frontol_for_kas_converter.py"
-set "LOG_DIR=\\Server\Domino\MAIL\FOR_KAS\1_CONVERT_LOG"
+
+rem Формируем пути на основе номера кассы
+set "INPUT_DIR=\\Server\Domino\MAIL\FOR_KAS\%KAS_NUM%"
+set "OUTPUT_DIR=c:\domino_frontol_converter\data\FOR_KAS\%KAS_NUM%_FRONTOL"
+set "LOG_DIR=\\Server\Domino\MAIL\FOR_KAS\%KAS_NUM%_CONVERT_LOG"
 
 rem ========== Initialization ==========
 for /f %%A in ('powershell -Command "(Get-Date).ToString('yyyy-MM-dd')"') do set "LOG_DATE=%%A"
@@ -30,7 +38,8 @@ rem ========== Execution block ==========
 echo [SYSTEM] Starting conversion process >> "%LOG_FILE%"
 echo [SYSTEM] Starting document conversion...
 
-"%PYTHON_PATH%" "%SCRIPT_PATH%" >> "%LOG_FILE%" 2>&1
+rem Запуск python скрипта с передачей путей
+"%PYTHON_PATH%" "%SCRIPT_PATH%" "%INPUT_DIR%" "%OUTPUT_DIR%" "%LOG_DIR%" >> "%LOG_FILE%" 2>&1
 set PYTHON_EXITCODE=%errorlevel%
 
 if %PYTHON_EXITCODE% equ 0 (

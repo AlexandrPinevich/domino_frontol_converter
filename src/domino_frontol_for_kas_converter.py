@@ -152,7 +152,7 @@ def ensure_files_exist(input_dir):
     for filename in os.listdir(input_dir):
         if filename.startswith("$") or filename.lower().endswith(".txt"):
             return True
-    logging.warning(f"В папке {input_dir} нет подходящих файлов для обработки")
+    logging.info(f"В папке {input_dir} нет подходящих файлов для обработки")
     return False
 
 
@@ -197,9 +197,7 @@ def process_directory(input_dir, output_dir, log_dir):
 
     if not ensure_files_exist(input_dir):
         # вот это нам лог не забьет с концами?
-        logging.warning(
-            f"Нет файлов для обработки в {input_dir}  Прекращаем выполнение"
-        )
+        logging.info(f"Нет файлов для обработки в {input_dir}  Прекращаем выполнение")
         return  # Прекращаем выполнение, если файлов для обработки не существуют
 
     try:
@@ -255,6 +253,12 @@ if __name__ == "__main__":
     # TODO удалять обработанные файлы (2я строка = @) старше 30 дней?
     # Это все можно на отдельный скрипт повесить и запускать раз в сутки например
     """
+    Этот скрипт забирает файлы с ценами формата Пилот из сетевой папки кассы,
+    преобразует их в формат Атол и кладет в локальную папку.
+    Обработанные файлы удаляются из директории источника.
+    Файлы в формате Атол с расширением .txt пробрасываются из папки источника
+    в папку приемник без конвертации.
+
     Применение:
     В текущей конфигурации для передачи товара на кассу Домино задействует
     директорию //server/Domino/MAIL/FOR_KAS где для каждой кассы своя
@@ -270,13 +274,14 @@ if __name__ == "__main__":
     планировщик при запуске BAT файла не видит её в частности
     //server/Domino лучше, если не работает, то по статическому айпи
 
-    1. Измени путь в переменной base_input_path
-    2. Измени путь в переменной base_output_path
-    3. Измени for_kas_dir, если используется другая.
-    4. Укажи номер кассы в переменной input_dir_name.
-    5. Измени путь в переменной output_dir_name
-    6. Измени путь в переменной log_dir_name
-    7. Создай директории output_dir_name и log_dir_name вручную.
+    Пути задаются в файлах:
+        frontol_converter_run.bat
+            запускает этот скрипт
+        frontol_extractor.bat
+            отправляет кассовый отчет на сетевую папку
+            запускается средствами фронтола при выходе в ОС
+
+    Создай директории INPUT_DIR OUTPUT_DIR LOG_DIR вручную.
 
     Например, для кассы 2 (FOR_KAS/2) создаются директории:
     - `FOR_KAS/2_FRONTOL`
@@ -297,19 +302,20 @@ if __name__ == "__main__":
     папку приемник без конвертации. Название файла не должно начинаеться с $
     и должно иметь расширение .txt. Для удобства управления скидками.
 
-    При обработке ковертированных файлов `FrontolService` заменяет во
+    При обработке конвертированных файлов `FrontolService` заменяет во
     второй строке признак `#` на `@` для обработанных, сам флаг удаляется.
     """
 
-    base_input_path = "//Server/Domino/MAIL"
-    base_output_path = "c:/domino_frontol_converter/data"
-    for_kas_dir = "FOR_KAS"
-    input_dir_name = "1"
-    output_dir_name = f"{input_dir_name}_FRONTOL"
-    log_dir_name = f"{input_dir_name}_CONVERT_LOG"
+    if len(sys.argv) < 4:
+        print(
+            "Ошибка: недостаточно аргументов. Нужно 3 параметра: "
+            "input_dir, output_dir, log_dir",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-    input_directory = f"{base_input_path}/{for_kas_dir}/{input_dir_name}"
-    output_directory = f"{base_output_path}/{for_kas_dir}/{output_dir_name}"
-    log_directory = f"{base_input_path}/{for_kas_dir}/{log_dir_name}"
+    input_directory = sys.argv[1]
+    output_directory = sys.argv[2]
+    log_directory = sys.argv[3]
 
     process_directory(input_directory, output_directory, log_directory)
