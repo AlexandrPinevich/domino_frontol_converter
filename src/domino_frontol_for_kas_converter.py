@@ -182,7 +182,8 @@ def process_directory(input_dir, output_dir, log_dir):
         ensure_directories_exist(input_dir, output_dir, log_dir)
     except FileNotFoundError as e:
         print(f"Отсутствуют директории: {e}", file=sys.stderr)
-        return  # Прекращаем выполнение, если директории не существуют
+        sys.exit(1)  # Прекращаем выполнение, скрипт вернет код ошибки
+        # return  # Прекращаем выполнение, если директории не существуют
 
     # Настраиваем логирование
     log_file = os.path.join(
@@ -303,7 +304,7 @@ if __name__ == "__main__":
     base_input_path = "//Server/Domino/MAIL"
     base_output_path = "c:/domino_frontol_converter/data"
     for_kas_dir = "FOR_KAS"
-    input_dir_name = "4"
+    input_dir_name = "1"
     output_dir_name = f"{input_dir_name}_FRONTOL"
     log_dir_name = f"{input_dir_name}_CONVERT_LOG"
 

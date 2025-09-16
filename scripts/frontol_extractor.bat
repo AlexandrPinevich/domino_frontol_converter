@@ -8,7 +8,7 @@ rem ========== SETTINGS ==========
 set "source_folder=C:\domino_frontol_converter\data\FROM_KAS"
 set "destination_folder=\\Server\Domino\MAIL\FROM_KAS"
 set "log_folder=\\Server\Domino\MAIL\FROM_KAS\Frontol_extract_log"
-set "kas_number=kas_4"
+set "kas_number=kas_1"
 set "log_file=%log_folder%\%kas_number%.log"
 
 rem ========== PATH VALIDATION ==========
