@@ -132,6 +132,7 @@ def check_old_format(input_filename):
     """
     Проверяет, содержит ли файл строки с BMODE=3 (старый формат).
     Возвращает True, если найден старый формат, иначе False.
+    не сработает, если весь товар в пакете маркированный BMODE=7
     """
     try:
         with open(input_filename, "r", encoding="cp866") as infile:
@@ -201,7 +202,6 @@ def process_directory(input_dir, output_dir, log_dir):
     except FileNotFoundError as e:
         print(f"Отсутствуют директории: {e}", file=sys.stderr)
         sys.exit(1)  # Прекращаем выполнение, скрипт вернет код ошибки
-        # return  # Прекращаем выполнение, если директории не существуют
 
     # Настраиваем логирование
     log_file = os.path.join(
@@ -223,20 +223,22 @@ def process_directory(input_dir, output_dir, log_dir):
             input_path = os.path.join(input_dir, filename)
             # Если это файл переоценки
             if filename.startswith("$"):
-                # Проверяем старый формат отдельной функцией
+
+                # Проверяем файл на старый формат
                 if check_old_format(input_path):
-                    # Переименовываем файл с добавлением "!"
+                    # Старый формат не обрабатываем, переименовываем с добавлением "!"
                     new_name = "!" + filename
                     new_path = os.path.join(input_dir, new_name)
                     try:
                         os.rename(input_path, new_path)
                         logging.warning(
-                            f"Файл с ошибкой старого формата переименован: "
+                            f"Ошибка, старый формат данных, "
+                            f"файл будет пропущен и переименован: "
                             f"{input_path} -> {new_path}"
                         )
                     except Exception as e:
                         logging.error(
-                            f"Не удалось переименовать файл с ошибкой: "
+                            f"Не удалось переименовать файл с ошибкой старого формата: "
                             f"{input_path} - {e}"
                         )
                     continue  # Переходим к следующему файлу
