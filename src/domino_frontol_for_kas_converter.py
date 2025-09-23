@@ -128,6 +128,24 @@ def convert_file(input_filename, output_filename):
         return False
 
 
+def check_old_format(input_filename):
+    """
+    Проверяет, содержит ли файл строки с BMODE=3 (старый формат).
+    Возвращает True, если найден старый формат, иначе False.
+    """
+    try:
+        with open(input_filename, "r", encoding="cp866") as infile:
+            for line in infile:
+                if "BMODE=3" in line:
+                    return True
+        return False
+    except Exception as e:
+        logging.error(
+            f"Ошибка при проверке файла на старый формат: {input_filename} " f" - {e}"
+        )
+        return True  # Если не смогли проверить - считаем проблемным
+
+
 def ensure_directories_exist(input_dir, output_dir, log_dir):
     """
     Проверяет существование директорий.
@@ -205,6 +223,24 @@ def process_directory(input_dir, output_dir, log_dir):
             input_path = os.path.join(input_dir, filename)
             # Если это файл переоценки
             if filename.startswith("$"):
+                # Проверяем старый формат отдельной функцией
+                if check_old_format(input_path):
+                    # Переименовываем файл с добавлением "!"
+                    new_name = "!" + filename
+                    new_path = os.path.join(input_dir, new_name)
+                    try:
+                        os.rename(input_path, new_path)
+                        logging.warning(
+                            f"Файл с ошибкой старого формата переименован: "
+                            f"{input_path} -> {new_path}"
+                        )
+                    except Exception as e:
+                        logging.error(
+                            f"Не удалось переименовать файл с ошибкой: "
+                            f"{input_path} - {e}"
+                        )
+                    continue  # Переходим к следующему файлу
+
                 output_filename = filename + ".txt"
                 output_path = os.path.join(output_dir, output_filename)
 
@@ -247,7 +283,6 @@ if __name__ == "__main__":
     # Желательно
     # TODO переделать чтобы запускать как службу Windows (pywin32/NSSM)
     # TODO логи в одну строку компактнее сделать
-
     # TODO контроль за размером логов, удалять все, что старше 30 дней?
     # TODO контроль за размером входной папки фронтола,
     # TODO удалять обработанные файлы (2я строка = @) старше 30 дней?
@@ -304,6 +339,10 @@ if __name__ == "__main__":
 
     При обработке конвертированных файлов `FrontolService` заменяет во
     второй строке признак `#` на `@` для обработанных, сам флаг удаляется.
+
+    добавлена проверка на соответствие новому формату файла, т.к. вылез риск
+    при случайной выгрузке всей базы в старом формате (где BMODE=3 лекарственные
+    препараты, у нас таких нет) положить кассы (весь товар маркированный будет)
     """
 
     if len(sys.argv) < 4:
